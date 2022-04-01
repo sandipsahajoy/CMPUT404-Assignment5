@@ -59,3 +59,15 @@ Contributors
 * Mark Galloway
 * Abram Hindle
 * Cole Mackenzie
+* Sandip Saha Joy
+
+Reference / Collaboration
+=========================
+Collaboration:
+- Did not collaborate
+
+Reference Code:
+- https://github.com/abramhindle/WebSocketsExamples/blob/master/chat.py
+- https://github.com/sandipsahajoy/CMPUT404-Assignment4
+- https://github.com/jihoonog/CMPUT404-assignment-websockets
+- https://github.com/GraceFu/CMPUT404-assignment-websockets

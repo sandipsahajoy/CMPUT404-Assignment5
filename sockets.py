@@ -1,3 +1,5 @@
+# Reference Code: https://github.com/abramhindle/WebSocketsExamples/blob/master/chat.py
+
 #!/usr/bin/env python
 # coding: utf-8
 # Copyright (c) 2013-2014 Abram Hindle
@@ -59,12 +61,34 @@ class World:
     def world(self):
         return self.space
 
-myWorld = World()        
+myWorld = World()    
+
+def send_all(msg):
+    for client in clients:
+        client.put(msg)
+
+def send_all_json(obj):
+    send_all( json.dumps(obj))
+
+class Client:
+    def __init__(self):
+        self.queue = queue.Queue()
+
+    def put(self, v):
+        self.queue.put_nowait(v)
+
+    def get(self):
+        return self.queue.get()
+
+clients = list()
 
 def set_listener( entity, data ):
     ''' do something with the update ! '''
+    msg = json.dumps({entity: data})
+    for client in clients:
+        client.put(msg)
 
-myWorld.add_set_listener( set_listener )
+myWorld.add_set_listener(set_listener)
         
 @app.route('/')
 def hello():
@@ -74,14 +98,37 @@ def hello():
 def read_ws(ws,client):
     '''A greenlet function that reads from the websocket and updates the world'''
     # XXX: TODO IMPLEMENT ME
-    return None
+    try:
+        while True:
+            msg = ws.receive()
+            print("WS RECV: %s" % msg)
+            if (msg is not None):
+                packet = json.loads(msg)
+                send_all_json(packet)
+            else:
+                break
+    except:
+        '''Done'''
+        pass
 
 @sockets.route('/subscribe')
 def subscribe_socket(ws):
     '''Fufill the websocket URL of /subscribe, every update notify the
        websocket and read updates from the websocket '''
     # XXX: TODO IMPLEMENT ME
-    return None
+    client = Client()
+    clients.append(client)
+    g = gevent.spawn(read_ws, ws, client)    
+    try:
+        while True:
+            # block here
+            msg = client.get()
+            ws.send(msg)
+    except Exception as e:  # WebSocketError as e:
+        print("WS Error %s" % e)
+    finally:
+        clients.remove(client)
+        gevent.kill(g)
 
 
 # I give this to you, this is how you get the raw body/data portion of a post in flask
